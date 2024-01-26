@@ -1,7 +1,7 @@
 {
   "profiles": {
-    "Windows Machine": {
-      "commandName": "MsixPackage",
+    "Macos Machine": {
+      "commandName": "Project",
       "nativeDebugging": false
     }
   }

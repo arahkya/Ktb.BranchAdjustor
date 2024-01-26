@@ -8,7 +8,7 @@
     Title="Ktb.BranchAdjustor.Maui">
 
     <ShellContent
-        Title="Home"
+        Title="KTB Branch Adjustor"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 

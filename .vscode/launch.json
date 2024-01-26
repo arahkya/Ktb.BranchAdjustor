@@ -18,6 +18,13 @@
             "stopAtEntry": false
         },
         {
+            "name": "Run Branch Adjustor",
+            "type": "dotnet",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "projectPath": "${workspaceFolder}/Ktb.BranchAdjustor.Maui/Ktb.BranchAdjustor.Maui.csproj"
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"
