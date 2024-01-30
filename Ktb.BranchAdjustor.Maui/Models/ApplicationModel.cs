@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using Ktb.BranchAdjustor.Maui.Entities;
@@ -25,8 +26,10 @@ namespace Ktb.BranchAdjustor.Models
 
         public bool IsIdle
         {
-            get => !isBusy;            
+            get => !isBusy;
         }
+
+        public ObservableCollection<BranchDistributedEntity> BranchDistributedEntities { get; set; } = [];
 
         public ApplicationModel()
         {
@@ -56,17 +59,23 @@ namespace Ktb.BranchAdjustor.Models
 
                 const string branchFormat = "K{0:00000}";
 
-                string minBranch = string.Format(branchFormat, disputeGroupByBranch.First().Key);
-                string maxBranch = string.Format(branchFormat, disputeGroupByBranch.Last().Key);
-
+                int minBranch = disputeGroupByBranch.First().Key;
+                int maxBranch = disputeGroupByBranch.Last().Key;
                 int totalDispute = disputes.Count();
 
-                FileInfo.BranchRange = $"{minBranch}-{maxBranch}";
+                FileInfo.BranchRange = $"{string.Format(branchFormat, minBranch)}-{string.Format(branchFormat, maxBranch)}";
                 FileInfo.TotalBranch = disputeGroupByBranch.Count();
                 FileInfo.TotalDispute = totalDispute;
                 FileInfo.BranchPerWorker = disputeGroupByBranch.Count() / FileInfo.WorkerNumber;
                 FileInfo.DisputePerWorker = totalDispute / FileInfo.WorkerNumber;
-            });            
+
+                BranchDistributor branchDistributor = new(disputes, new Range(minBranch, maxBranch), FileInfo.WorkerNumber);
+
+                foreach (BranchDistributedEntity entity in branchDistributor.Distribute())
+                {
+                    BranchDistributedEntities.Add(entity);
+                }
+            });
 
             IsBusy = false;
         }

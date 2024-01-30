@@ -15,8 +15,8 @@
             <ColumnDefinition Width="40*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40*" />
-            <RowDefinition Height="60*" />
+            <RowDefinition Height="470" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <Grid x:Name="FileInfoPane" Padding="20">
@@ -25,13 +25,13 @@
                 <ColumnDefinition Width="75*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />                
+                <RowDefinition Height="60" />
+                <RowDefinition Height="60" />
+                <RowDefinition Height="60" />
+                <RowDefinition Height="60" />
+                <RowDefinition Height="60" />
+                <RowDefinition Height="60" />
+                <RowDefinition Height="60" />                
             </Grid.RowDefinitions>
 
             <Label Grid.Column="0" Grid.Row="0" Style="{StaticResource FileInfoLabelStyle}" Text="File Name" VerticalTextAlignment="Center" />
@@ -51,10 +51,44 @@
             <Label Grid.Column="1" Grid.Row="5" Style="{StaticResource FileInfoLabelStyle}" Text="{Binding FileInfo.BranchPerWorker}" x:Name="BranchPerWorkerLabel" />
             <Label Grid.Column="1" Grid.Row="6" Style="{StaticResource FileInfoLabelStyle}" Text="{Binding FileInfo.DisputePerWorker}" x:Name="DisputePerWorkerLabel" />
         </Grid>
-        <ScrollView Grid.Column="0" Grid.Row="1">
-            <ListView>
-
-            </ListView>
-        </ScrollView>
+        <VerticalStackLayout Grid.Row="1" BackgroundColor="White">
+            <Grid Padding="0,10" BackgroundColor="LightSlateGray">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" Grid.Row="0" Padding="0,5" TextColor="White" HorizontalTextAlignment="Center" Text="Branch Start" />
+                <Label Grid.Column="1" Grid.Row="0" Padding="0,5" TextColor="White" HorizontalTextAlignment="Center" Text="Branch End" />
+                <Label Grid.Column="2" Grid.Row="0" Padding="0,5" TextColor="White" HorizontalTextAlignment="Center" Text="Total Dispute" />
+                <Label Grid.Column="3" Grid.Row="0" Padding="0,5" TextColor="White" HorizontalTextAlignment="Center" Text="Total Branch" />
+            </Grid>                                
+            
+            <CollectionView ItemsSource="{Binding BranchDistributedEntities}" BackgroundColor="White">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>                        
+                        <Grid Padding="0,10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />                                    
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                            <Label Grid.Column="0" Grid.Row="0" Padding="0,5" TextColor="Black" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" Text="{Binding BranchStart, StringFormat='K{0:00000}'}" />
+                            <Label Grid.Column="1" Grid.Row="0" Padding="0,5" TextColor="Black" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" Text="{Binding BranchEnd, StringFormat='K{0:00000}'}" />
+                            <Label Grid.Column="2" Grid.Row="0" Padding="0,5" TextColor="Black" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" Text="{Binding TotalDispute}" />
+                            <Label Grid.Column="3" Grid.Row="0" Padding="0,5" TextColor="Black" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" Text="{Binding TotalBranch}" />
+                        </Grid>                        
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>            
+        </VerticalStackLayout>
     </Grid>
 </ContentPage>
