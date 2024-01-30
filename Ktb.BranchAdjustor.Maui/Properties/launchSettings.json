@@ -1,6 +1,10 @@
 {
   "profiles": {
-    "Macos Machine": {
+    "Default": {
+      "commandName": "MsixPackage",
+      "nativeDebugging": false
+    },
+    "Macos": {
       "commandName": "Project",
       "nativeDebugging": false
     }
