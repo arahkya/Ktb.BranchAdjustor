@@ -11,6 +11,9 @@ namespace Ktb.BranchAdjustor.Models
         private string branchRange = string.Empty;
         private int branchPerWorker;
         private int disputePerWorker;
+        private int totalDispute;
+
+        private readonly Action<string> loadedFileCallback;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -68,15 +71,25 @@ namespace Ktb.BranchAdjustor.Models
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisputePerWorker)));
             }
         }
-
+        public int TotalDispute
+        {
+            get => totalDispute;
+            set
+            {
+                totalDispute = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalDispute)));
+            }
+        }
+        
         public ICommand SelectFileCommand { get; set; }
 
-        public FileInfoModel()
-        {            
+        public FileInfoModel(Action<string> loadedFileCallback)
+        {
             SelectFileCommand = new Command(async () => await SelectFileCommandHandler());
             FileName = "Select File";
 
             WorkerNumber = 7;
+            this.loadedFileCallback = loadedFileCallback;
         }
 
         private async Task SelectFileCommandHandler()
@@ -99,6 +112,8 @@ namespace Ktb.BranchAdjustor.Models
                 FileName = fileResult.FullPath;
 
                 System.Diagnostics.Debug.WriteLine($"Select file: {FileName}");
+
+                loadedFileCallback.Invoke(FileName);
             }
             catch (Exception ex)
             {
