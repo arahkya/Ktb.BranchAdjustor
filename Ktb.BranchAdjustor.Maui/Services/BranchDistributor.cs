@@ -28,7 +28,7 @@ namespace Ktb.BranchAdjustor.Maui.Services
 
                 branchDistributedEntities[j] = new()
                 {
-                    BranchStart = branchStart,
+                    BranchStart = (j == 0) ? 0 : branchStart,
                     BranchEnd = (j == (branchDistributedEntities.Length - 1)) ? branchRange.End.Value : branchEnd
                 };
             }

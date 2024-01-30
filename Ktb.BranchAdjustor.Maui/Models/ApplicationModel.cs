@@ -59,14 +59,14 @@ namespace Ktb.BranchAdjustor.Models
 
                 const string branchFormat = "K{0:00000}";
 
-                int minBranch = disputeGroupByBranch.First().Key;
+                int minBranch = 0;
                 int maxBranch = disputeGroupByBranch.Last().Key;
                 int totalDispute = disputes.Count();
 
                 FileInfo.BranchRange = $"{string.Format(branchFormat, minBranch)}-{string.Format(branchFormat, maxBranch)}";
                 FileInfo.TotalBranch = disputeGroupByBranch.Count();
                 FileInfo.TotalDispute = totalDispute;
-                FileInfo.BranchPerWorker = disputeGroupByBranch.Count() / FileInfo.WorkerNumber;
+                FileInfo.BranchPerWorker = disputeGroupByBranch.Last().Key / FileInfo.WorkerNumber;
                 FileInfo.DisputePerWorker = totalDispute / FileInfo.WorkerNumber;
 
                 BranchDistributor branchDistributor = new(disputes, new Range(minBranch, maxBranch), FileInfo.WorkerNumber);
