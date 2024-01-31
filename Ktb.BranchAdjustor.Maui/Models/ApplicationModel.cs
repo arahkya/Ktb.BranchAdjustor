@@ -41,6 +41,8 @@ namespace Ktb.BranchAdjustor.Models
         private async Task LoadFileCommandHandler(string fileName)
         {
             IsBusy = true;
+            
+            BranchDistributedEntities.Clear();
 
             await Task.Factory.StartNew(() =>
             {
