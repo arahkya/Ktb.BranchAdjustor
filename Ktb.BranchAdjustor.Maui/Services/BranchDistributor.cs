@@ -24,12 +24,13 @@ namespace Ktb.BranchAdjustor.Maui.Services
             for (int j = 0; j < branchDistributedEntities.Length; j++)
             {
                 int branchStart = (j == 0) ? branchRange.Start.Value : branchDistributedEntities[j - 1].BranchEnd + 1;
-                int branchEnd = branchStart + avgBranchPerWorker;
-
+                int branchEnd = (j == (branchDistributedEntities.Length - 1)) ? branchRange.End.Value : branchStart + avgBranchPerWorker;
+                
                 branchDistributedEntities[j] = new()
                 {
                     BranchStart = (j == 0) ? 0 : branchStart,
-                    BranchEnd = (j == (branchDistributedEntities.Length - 1)) ? branchRange.End.Value : branchEnd
+                    BranchEnd = branchEnd,
+                    TotalDispute = disputeEntities.Count(p => p.BranchNumber >= branchStart && p.BranchNumber <= branchEnd)
                 };
             }
 
