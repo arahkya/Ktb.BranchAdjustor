@@ -19,7 +19,9 @@ namespace Ktb.BranchAdjustor.Maui.Entities
             {
                 branchStart = value;
 
+                Recalculate();
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BranchStart)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalBranch)));
             }
         }
 
@@ -32,24 +34,40 @@ namespace Ktb.BranchAdjustor.Maui.Entities
             {
                 branchEnd = value;
 
+                Recalculate();
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BranchEnd)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalBranch)));
             }
         }
 
-        public int TotalDispute { get; set; }
+        private int totalDispute;
+
+        public int TotalDispute
+        {
+            get => totalDispute;
+            set
+            {
+                totalDispute = value;
+
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalDispute)));
+            }
+        }
+
         public int TotalBranch => BranchEnd - BranchStart;
 
         public delegate void BranchAdjustHandler(ChangeBranchContextModel changeBranchContextModel);
 
         public BranchAdjustHandler? BranchAdjust;
+        private readonly IEnumerable<DisputeEntity> disputes;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public ICommand AdjustBranchCommand { get; set; }
 
-        public BranchDistributedEntity()
+        public BranchDistributedEntity(IEnumerable<DisputeEntity> disputes)
         {
             AdjustBranchCommand = new Command(AdjustBranchCommandHandler);
+            this.disputes = disputes;
         }
 
         private void AdjustBranchCommandHandler(object args)
@@ -57,6 +75,11 @@ namespace Ktb.BranchAdjustor.Maui.Entities
             ChangeBranchContextModel changeContext = (ChangeBranchContextModel)args;
 
             BranchAdjust?.Invoke(changeContext);
+        }
+
+        private void Recalculate()
+        {
+            TotalDispute = disputes.Count(p => p.BranchNumber >= branchStart && p.BranchNumber <= branchEnd);
         }
     }
 }

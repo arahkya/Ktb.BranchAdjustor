@@ -78,7 +78,6 @@ namespace Ktb.BranchAdjustor.Models
                 {
                     entity.Index = index;
                     entity.BranchAdjust = OnAdjustBranchHandler;
-                    //entity.MaxBranchLimit = maxBranch;
                     BranchDistributedEntities.Add(entity);
 
                     index++;
