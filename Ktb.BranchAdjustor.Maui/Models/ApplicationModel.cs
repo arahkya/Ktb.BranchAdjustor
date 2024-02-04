@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using Ktb.BranchAdjustor.Maui.Entities;
+using Ktb.BranchAdjustor.Maui.Models;
 using Ktb.BranchAdjustor.Maui.Services;
 
 namespace Ktb.BranchAdjustor.Models
@@ -41,7 +42,7 @@ namespace Ktb.BranchAdjustor.Models
         private async Task LoadFileCommandHandler(string fileName)
         {
             IsBusy = true;
-            
+
             BranchDistributedEntities.Clear();
 
             await Task.Factory.StartNew(() =>
@@ -72,14 +73,49 @@ namespace Ktb.BranchAdjustor.Models
                 FileInfo.DisputePerWorker = totalDispute / FileInfo.WorkerNumber;
 
                 BranchDistributor branchDistributor = new(disputes, new Range(minBranch, maxBranch), FileInfo.WorkerNumber);
-
+                int index = 0;
                 foreach (BranchDistributedEntity entity in branchDistributor.Distribute())
                 {
+                    entity.Index = index;
+                    entity.BranchAdjust = OnAdjustBranchHandler;
+                    //entity.MaxBranchLimit = maxBranch;
                     BranchDistributedEntities.Add(entity);
+
+                    index++;
                 }
             });
 
             IsBusy = false;
+        }
+
+        private void OnAdjustBranchHandler(ChangeBranchContextModel changeBranchContextModel)
+        {
+            if (changeBranchContextModel.Position == "End")
+            {
+                BranchDistributedEntity nextBranch = BranchDistributedEntities[changeBranchContextModel.Index + 1];
+
+                if (changeBranchContextModel.Changed == "+")
+                {
+                    nextBranch.BranchStart++;
+                }
+                else if (changeBranchContextModel.Changed == "-")
+                {
+                    nextBranch.BranchStart--;
+                }
+            }
+            else if (changeBranchContextModel.Position == "Start")
+            {
+                BranchDistributedEntity prevBranch = BranchDistributedEntities[changeBranchContextModel.Index - 1];
+
+                if (changeBranchContextModel.Changed == "+")
+                {
+                    prevBranch.BranchEnd++;
+                }
+                else if (changeBranchContextModel.Changed == "-")
+                {
+                    prevBranch.BranchEnd--;
+                }
+            }
         }
     }
 }

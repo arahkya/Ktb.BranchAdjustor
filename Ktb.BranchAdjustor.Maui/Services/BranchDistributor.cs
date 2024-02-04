@@ -1,4 +1,5 @@
 using Ktb.BranchAdjustor.Maui.Entities;
+using Ktb.BranchAdjustor.Maui.Models;
 
 namespace Ktb.BranchAdjustor.Maui.Services
 {
@@ -30,6 +31,7 @@ namespace Ktb.BranchAdjustor.Maui.Services
                 {
                     BranchStart = (j == 0) ? 0 : branchStart,
                     BranchEnd = branchEnd,
+                    MaxBranchLimit = branchRange.End.Value,
                     TotalDispute = disputeEntities.Count(p => p.BranchNumber >= branchStart && p.BranchNumber <= branchEnd)
                 };
             }
