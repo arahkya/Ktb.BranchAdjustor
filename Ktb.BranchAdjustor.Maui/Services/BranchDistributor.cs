@@ -8,6 +8,10 @@ namespace Ktb.BranchAdjustor.Maui.Services
         private readonly Range branchRange;
         private readonly int totalWorker;
 
+        public delegate void OnProgressChanged(decimal progress);
+
+        public event OnProgressChanged? ProgressChanged;
+
         public BranchDistributor(IEnumerable<DisputeEntity> disputeEntities, Range branchRange, int totalWorker)
         {
             this.disputeEntities = disputeEntities;
@@ -19,20 +23,17 @@ namespace Ktb.BranchAdjustor.Maui.Services
         {
             BranchDistributedEntity[] branchDistributedEntities = new BranchDistributedEntity[totalWorker];
 
-            int avgBranchPerWorker = branchRange.End.Value / totalWorker;
-
-            for (int j = 0; j < branchDistributedEntities.Length; j++)
+            for (int j = 0; j < totalWorker; j++)
             {
                 int branchStart = (j == 0) ? branchRange.Start.Value : branchDistributedEntities[j - 1].BranchEnd + 1;
-                // int branchEnd = (j == (branchDistributedEntities.Length - 1)) ? branchRange.End.Value : branchStart + avgBranchPerWorker;
-                int branchEnd = (j == (branchDistributedEntities.Length - 1)) ? branchRange.End.Value : CalculateBranchEnd(branchStart);
+                int branchEnd = CalculateBranchEnd(branchStart);
 
                 BranchDistributedEntity branchDistributedEntity = new(disputeEntities, branchStart, branchEnd, branchRange.End.Value);
 
                 branchDistributedEntities[j] = branchDistributedEntity;
-            }
 
-            return branchDistributedEntities;
+                yield return branchDistributedEntity;
+            }
         }
 
         private int CalculateBranchEnd(int branchStart)
@@ -40,13 +41,18 @@ namespace Ktb.BranchAdjustor.Maui.Services
             int adjustBranchStart = branchStart;
             int adjustBranchEnd = adjustBranchStart + 1;
             int disputeCount = 0;
-            int avgDisputeForWorker = disputeEntities.Count() / totalWorker;
+            int disputeTotal = disputeEntities.Count();
+            int avgDisputeForWorker = disputeTotal / totalWorker;
 
             while (disputeCount < avgDisputeForWorker)
             {
+                if(adjustBranchEnd == branchRange.End.Value) break;
+
                 disputeCount = disputeEntities.Count(p => p.BranchNumber >= adjustBranchStart && p.BranchNumber <= adjustBranchEnd);
 
                 adjustBranchEnd++;
+                
+                ProgressChanged?.Invoke(Convert.ToDecimal(adjustBranchEnd) / Convert.ToDecimal(branchRange.End.Value));
 
                 System.Diagnostics.Debug.WriteLine($"BranchStart: {adjustBranchStart}, BranchEnd: {adjustBranchEnd}, Dispute: {disputeCount}");
             }

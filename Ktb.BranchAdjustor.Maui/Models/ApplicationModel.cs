@@ -10,6 +10,7 @@ namespace Ktb.BranchAdjustor.Models
     public class ApplicationModel : INotifyPropertyChanged
     {
         private bool isBusy;
+        private decimal progress;
 
         public FileInfoModel FileInfo { get; set; }
 
@@ -30,6 +31,17 @@ namespace Ktb.BranchAdjustor.Models
             get => !isBusy;
         }
 
+        public decimal Progress
+        {
+            get => progress;
+            set
+            {
+                progress = value;
+
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Progress)));
+            }
+        }
+
         public ObservableCollection<BranchDistributedEntity> BranchDistributedEntities { get; set; } = [];
 
         public ApplicationModel()
@@ -45,7 +57,7 @@ namespace Ktb.BranchAdjustor.Models
 
             BranchDistributedEntities.Clear();
 
-            await Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(async () =>
             {
                 string sheetName = "DisputeATM";
                 string branchCodeColumnName = "Branch";
@@ -74,6 +86,14 @@ namespace Ktb.BranchAdjustor.Models
 
                 BranchDistributor branchDistributor = new(disputes, new Range(minBranch, maxBranch), FileInfo.WorkerNumber);
                 int index = 0;
+
+                branchDistributor.ProgressChanged += (progress) =>
+                {
+                    System.Diagnostics.Debug.WriteLine($"Progress {progress}%");
+
+                    Progress = progress;
+                };
+
                 foreach (BranchDistributedEntity entity in branchDistributor.DistributeByBranch())
                 {
                     entity.Index = index;
@@ -93,7 +113,7 @@ namespace Ktb.BranchAdjustor.Models
             BranchDistributedEntity currentBranch = BranchDistributedEntities[changeBranchContextModel.Index];
 
             if (changeBranchContextModel.Position == "End")
-            {                
+            {
                 BranchDistributedEntity nextBranch = BranchDistributedEntities[changeBranchContextModel.Index + 1];
 
                 if (changeBranchContextModel.Changed == "+")

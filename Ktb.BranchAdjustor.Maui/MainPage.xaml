@@ -42,8 +42,8 @@
             <Label Grid.Column="0" Grid.Row="4" Style="{StaticResource FileInfoLabelStyle}" Text="Branch Range" />
             <Label Grid.Column="0" Grid.Row="5" Style="{StaticResource FileInfoLabelStyle}" Text="AVG. Branch per Worker" />
             <Label Grid.Column="0" Grid.Row="6" Style="{StaticResource FileInfoLabelStyle}" Text="AVG. Dispute per Worker" />
-            
-            <ActivityIndicator Grid.Column="1" Grid.Row="0" Margin="10" IsRunning="{Binding IsBusy}" Color="Red" IsVisible="{Binding IsBusy}" />
+           
+            <ProgressBar Grid.Column="1" Margin="10" Progress="{Binding Progress}" IsVisible="{Binding IsBusy}" />
             <Button Grid.Column="1" Grid.Row="0" Margin="10" Padding="0" HorizontalOptions="Fill" IsVisible="{Binding IsIdle}" Text="{Binding FileInfo.FileName, Mode=TwoWay}" x:Name="SelectFileButton" Command="{Binding FileInfo.SelectFileCommand}" />
             <Label Grid.Column="1" Grid.Row="1" Style="{StaticResource FileInfoLabelStyle}" x:Name="WorkerNumberLabel" Text="{Binding FileInfo.WorkerNumber, Mode=TwoWay}" />
             <Label Grid.Column="1" Grid.Row="2" Style="{StaticResource FileInfoLabelStyle}" Text="{Binding FileInfo.TotalBranch}" x:Name="TotalBranchLabel" />
@@ -70,7 +70,7 @@
                 <Label Grid.Column="3" Grid.Row="0" Padding="0,5" TextColor="White" HorizontalTextAlignment="Center" Text="Total Branch" />
             </Grid>            
             
-            <CollectionView ItemsSource="{Binding BranchDistributedEntities}" BackgroundColor="White">
+            <CollectionView ItemsSource="{Binding BranchDistributedEntities}" BackgroundColor="White" IsEnabled="{Binding IsIdle}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>                        
                         <Grid Padding="0" HorizontalOptions="Fill">
