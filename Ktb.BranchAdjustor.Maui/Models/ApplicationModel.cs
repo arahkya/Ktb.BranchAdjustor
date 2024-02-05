@@ -57,7 +57,7 @@ namespace Ktb.BranchAdjustor.Models
 
             BranchDistributedEntities.Clear();
 
-            await Task.Factory.StartNew(async () =>
+            await Task.Factory.StartNew(() =>
             {
                 string sheetName = "DisputeATM";
                 string branchCodeColumnName = "Branch";
@@ -79,7 +79,7 @@ namespace Ktb.BranchAdjustor.Models
                 int totalDispute = disputes.Count();
 
                 FileInfo.BranchRange = $"{string.Format(branchFormat, minBranch)}-{string.Format(branchFormat, maxBranch)}";
-                FileInfo.TotalBranch = disputeGroupByBranch.Count();
+                FileInfo.TotalBranch = maxBranch;
                 FileInfo.TotalDispute = totalDispute;
                 FileInfo.BranchPerWorker = disputeGroupByBranch.Last().Key / FileInfo.WorkerNumber;
                 FileInfo.DisputePerWorker = totalDispute / FileInfo.WorkerNumber;
