@@ -86,7 +86,7 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <cc:AdjustableBranchGridLabel Grid.Column="0" Grid.Row="0" Branch="{Binding BranchStart}" Index="{Binding Index}" Position="Start" AdjustCommand="{Binding AdjustBranchCommand}" MaxLimit="{Binding MaxBranchLimit}" ></cc:AdjustableBranchGridLabel>
+                            <Label Grid.Column="0" Grid.Row="0" Padding="0,15,0,15" TextColor="Black" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" Text="{Binding BranchStart}" />
                             <cc:AdjustableBranchGridLabel Grid.Column="1" Grid.Row="0" Branch="{Binding BranchEnd}"  Index="{Binding Index}" Position="End" AdjustCommand="{Binding AdjustBranchCommand}" MaxLimit="{Binding MaxBranchLimit}"></cc:AdjustableBranchGridLabel>
                             
                             <Label Grid.Column="2" Grid.Row="0" Padding="0,15,0,15" TextColor="Black" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" Text="{Binding TotalDispute}" />

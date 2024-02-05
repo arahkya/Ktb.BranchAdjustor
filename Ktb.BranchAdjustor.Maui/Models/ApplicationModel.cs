@@ -89,17 +89,19 @@ namespace Ktb.BranchAdjustor.Models
 
         private void OnAdjustBranchHandler(ChangeBranchContextModel changeBranchContextModel)
         {
+            BranchDistributedEntity currentBranch = BranchDistributedEntities[changeBranchContextModel.Index];
+
             if (changeBranchContextModel.Position == "End")
-            {
+            {                
                 BranchDistributedEntity nextBranch = BranchDistributedEntities[changeBranchContextModel.Index + 1];
 
                 if (changeBranchContextModel.Changed == "+")
                 {
-                    nextBranch.BranchStart++;
+                    nextBranch.BranchStart = currentBranch.BranchEnd + 1;
                 }
                 else if (changeBranchContextModel.Changed == "-")
                 {
-                    nextBranch.BranchStart--;
+                    nextBranch.BranchStart = currentBranch.BranchEnd + 1;
                 }
             }
             else if (changeBranchContextModel.Position == "Start")
