@@ -18,6 +18,7 @@ namespace Ktb.BranchAdjustor.Maui.Entities
             set
             {
                 branchStart = value;
+                Recalculate();
 
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BranchStart)));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalBranch)));
@@ -69,7 +70,7 @@ namespace Ktb.BranchAdjustor.Maui.Entities
             }
         }
 
-        public int TotalBranch => BranchEnd - BranchStart;
+        public int TotalBranch { get; set; }
 
         public delegate void BranchAdjustHandler(ChangeBranchContextModel changeBranchContextModel);
 
@@ -80,10 +81,13 @@ namespace Ktb.BranchAdjustor.Maui.Entities
 
         public ICommand AdjustBranchCommand { get; set; }
 
-        public BranchDistributedEntity(IEnumerable<DisputeEntity> disputes)
+        public BranchDistributedEntity(IEnumerable<DisputeEntity> disputes, int branchStart, int branchEnd, int maxBranchLimit)
         {
             AdjustBranchCommand = new Command(AdjustBranchCommandHandler);
             this.disputes = disputes;
+            this.branchStart = branchStart;
+            this.branchEnd = branchEnd;
+            this.MaxBranchLimit = maxBranchLimit;
         }
 
         private void AdjustBranchCommandHandler(object args)
@@ -95,6 +99,8 @@ namespace Ktb.BranchAdjustor.Maui.Entities
         private void Recalculate()
         {
             TotalDispute = disputes.Count(p => p.BranchNumber >= branchStart && p.BranchNumber <= branchEnd);
+            int inclusiveBranch = 1;
+            TotalBranch = BranchEnd - BranchStart + inclusiveBranch;
         }
     }
 }

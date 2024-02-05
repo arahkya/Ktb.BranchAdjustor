@@ -74,10 +74,11 @@ namespace Ktb.BranchAdjustor.Models
 
                 BranchDistributor branchDistributor = new(disputes, new Range(minBranch, maxBranch), FileInfo.WorkerNumber);
                 int index = 0;
-                foreach (BranchDistributedEntity entity in branchDistributor.Distribute())
+                foreach (BranchDistributedEntity entity in branchDistributor.DistributeByBranch())
                 {
                     entity.Index = index;
                     entity.BranchAdjust = OnAdjustBranchHandler;
+
                     BranchDistributedEntities.Add(entity);
 
                     index++;
