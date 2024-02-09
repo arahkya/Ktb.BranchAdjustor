@@ -4,11 +4,11 @@ namespace Ktb.BranchAdjustor.Maui;
 
 public partial class MainPage : ContentPage
 {
-	public MainPage()
+	public MainPage(ApplicationModel applicationModel)
 	{
 		InitializeComponent();
 
-		BindingContext = new ApplicationModel();
+		BindingContext = applicationModel;
 	}
 }
 

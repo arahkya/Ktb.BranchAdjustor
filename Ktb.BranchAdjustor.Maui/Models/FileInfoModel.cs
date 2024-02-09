@@ -1,5 +1,7 @@
 using System.ComponentModel;
-using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using Ktb.BranchAdjustor.Maui.Models;
 
 namespace Ktb.BranchAdjustor.Models
 {
@@ -12,8 +14,6 @@ namespace Ktb.BranchAdjustor.Models
         private int branchPerWorker;
         private int disputePerWorker;
         private int totalDispute;
-
-        private readonly Action<string> loadedFileCallback;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -81,20 +81,18 @@ namespace Ktb.BranchAdjustor.Models
             }
         }
 
-        public ICommand SelectFileCommand { get; set; }
+        public IRelayCommand SelectFileCommand { get; set; }
 
-        public ICommand CancelCommand { get; set; }
 
         private const string fileNameDefault = "Select File";
 
-        public FileInfoModel(Action<string> loadedFileCallback, Action cancelLoadFile)
+        public FileInfoModel()
         {
-            SelectFileCommand = new Command(async () => await SelectFileCommandHandler());
-            CancelCommand = new Command(cancelLoadFile);
+            SelectFileCommand = new RelayCommand(async () => await SelectFileCommandHandler());
+
             FileName = fileNameDefault;
 
             WorkerNumber = 7;
-            this.loadedFileCallback = loadedFileCallback;
         }
 
         private async Task SelectFileCommandHandler()
@@ -116,9 +114,10 @@ namespace Ktb.BranchAdjustor.Models
 
                 FileName = fileResult.FullPath;
 
-                System.Diagnostics.Debug.WriteLine($"Select file: {FileName}");
+                WeakReferenceMessenger.Default.Send(new WorkerContextModel { TotalWorker = WorkerNumber });
+                WeakReferenceMessenger.Default.Send(fileResult);
 
-                loadedFileCallback.Invoke(FileName);
+                System.Diagnostics.Debug.WriteLine($"Select file: {FileName}");
             }
             catch (Exception ex)
             {

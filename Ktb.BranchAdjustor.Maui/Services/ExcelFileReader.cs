@@ -1,25 +1,24 @@
 using System.Data;
 using System.Text;
+using CommunityToolkit.Mvvm.Messaging;
 using ExcelDataReader;
 
 namespace Ktb.BranchAdjustor.Maui.Services
 {
-    public class ExcelFileReader
+    public class ExcelFileReader : IRecipient<FileResult>
     {
-        private readonly string excelFilePath;
+        private readonly ExcelSheetConfigurationOption excelSheetConfigurationOption;
 
-        private readonly string sheetName;
-
-        public ExcelFileReader(string excelFilePath, string sheetName)
+        public ExcelFileReader(ExcelSheetConfigurationOption excelSheetConfigurationOption)
         {
-            this.excelFilePath = excelFilePath;
-            this.sheetName = sheetName;
-
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            this.excelSheetConfigurationOption = excelSheetConfigurationOption;
         }
 
-        public DataTable Read()
+        public void Receive(FileResult message)
         {
+            string excelFilePath = message.FullPath;
+
             using FileStream excelFileStream = File.OpenRead(excelFilePath);
             using IExcelDataReader excelReader = ExcelReaderFactory.CreateReader(excelFileStream);
 
@@ -29,9 +28,9 @@ namespace Ktb.BranchAdjustor.Maui.Services
             };
 
             DataSet dataSet = excelReader.AsDataSet(excelReaderConfig);   
-            DataTable dataTable = dataSet.Tables[sheetName] ?? throw new Exception("Read Excel file sheet");
+            DataTable dataTable = dataSet.Tables[excelSheetConfigurationOption.SheetName] ?? throw new Exception("Read Excel file sheet");
 
-            return dataTable;
+            WeakReferenceMessenger.Default.Send(dataTable);
         }
     }
 }

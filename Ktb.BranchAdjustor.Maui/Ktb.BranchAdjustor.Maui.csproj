@@ -61,13 +61,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 
 		<PackageReference Include="ExcelDataReader" Version="3.6.0" />
     	<PackageReference Include="ExcelDataReader.DataSet" Version="3.6.0" />
-		<PackageReference Include="DotNetMeteor.HotReload.Plugin" Version="3.*"/>
+		<PackageReference Include="DotNetMeteor.HotReload.Plugin" Version="3.*" />
 	</ItemGroup>
 
 </Project>

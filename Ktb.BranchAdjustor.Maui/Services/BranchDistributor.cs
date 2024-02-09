@@ -1,56 +1,30 @@
+using CommunityToolkit.Mvvm.Messaging;
 using Ktb.BranchAdjustor.Maui.Models;
 
 namespace Ktb.BranchAdjustor.Maui.Services
 {
-    public class BranchDistributor
+    public class BranchDistributor : IRecipient<List<DisputeEntity>>, IRecipient<WorkerContextModel>, IRecipient<BranchContextModel>
     {
-        private readonly IEnumerable<DisputeEntity> disputeEntities;
-        private readonly Range branchRange;
-        private readonly int totalWorker;
+        private Range branchRange;
+        private int totalWorker;
 
         public delegate void OnProgressChanged(decimal progress, string message);
 
         public event OnProgressChanged? ProgressChanged;
 
-        public BranchDistributor(IEnumerable<DisputeEntity> disputeEntities, Range branchRange, int totalWorker)
-        {
-            this.disputeEntities = disputeEntities;
-            this.branchRange = branchRange;
-            this.totalWorker = totalWorker;
-        }
-
-        public IEnumerable<BranchDistributedEntity> DistributeByBranch(CancellationToken cancellationToken)
-        {
-            BranchDistributedEntity[] branchDistributedEntities = new BranchDistributedEntity[totalWorker];
-
-            for (int j = 0; j < totalWorker; j++)
-            {
-                if (cancellationToken.IsCancellationRequested) break;
-
-                int branchStart = (j == 0) ? branchRange.Start.Value : branchDistributedEntities[j - 1].BranchEnd + 1;
-                int branchEnd = CalculateBranchEnd(branchStart, cancellationToken);
-
-                BranchDistributedEntity branchDistributedEntity = new(disputeEntities, branchStart, branchEnd, branchRange.End.Value);
-
-                branchDistributedEntities[j] = branchDistributedEntity;
-
-                yield return branchDistributedEntity;
-            }
-        }
-
-        private int CalculateBranchEnd(int branchStart, CancellationToken cancellationToken)
+        private int CalculateBranchEnd(int branchStart, List<DisputeEntity> disputes)
         {
             int adjustBranchStart = branchStart;
             int adjustBranchEnd = adjustBranchStart + 1;
             int disputeCount = 0;
-            int disputeTotal = disputeEntities.Count();
+            int disputeTotal = disputes.Count();
             int avgDisputeForWorker = disputeTotal / totalWorker;
 
-            while (disputeCount < avgDisputeForWorker && !cancellationToken.IsCancellationRequested)
+            while (disputeCount < avgDisputeForWorker)
             {
                 if (adjustBranchEnd == branchRange.End.Value) break;
 
-                disputeCount = disputeEntities.Count(p => p.BranchNumber >= adjustBranchStart && p.BranchNumber <= adjustBranchEnd);
+                disputeCount = disputes.Count(p => p.BranchNumber >= adjustBranchStart && p.BranchNumber <= adjustBranchEnd);
 
                 adjustBranchEnd++;
 
@@ -61,6 +35,33 @@ namespace Ktb.BranchAdjustor.Maui.Services
             }
 
             return adjustBranchEnd;
+        }
+
+        public void Receive(List<DisputeEntity> disputes)
+        {
+            BranchDistributedEntity[] branchDistributedEntities = new BranchDistributedEntity[totalWorker];
+
+            for (int j = 0; j < totalWorker; j++)
+            {
+                int branchStart = (j == 0) ? branchRange.Start.Value : branchDistributedEntities[j - 1].BranchEnd + 1;
+                int branchEnd = CalculateBranchEnd(branchStart, disputes);
+
+                BranchDistributedEntity branchDistributedEntity = new(disputes, branchStart, branchEnd, branchRange.End.Value);
+
+                branchDistributedEntities[j] = branchDistributedEntity;
+
+                WeakReferenceMessenger.Default.Send(branchDistributedEntity);
+            }
+        }
+
+        public void Receive(WorkerContextModel context)
+        {
+            this.totalWorker = context.TotalWorker;
+        }
+
+        public void Receive(BranchContextModel branchRange)
+        {
+            this.branchRange = branchRange.BranchRange;
         }
     }
 }
