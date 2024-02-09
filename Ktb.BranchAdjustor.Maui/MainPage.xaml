@@ -36,7 +36,7 @@
             </Grid.RowDefinitions>
 
             <Label Grid.Column="0" Grid.Row="0" Style="{StaticResource FileInfoLabelStyle}" Text="Workers Number" />
-            <Label Grid.Column="0" Grid.Row="1" Style="{StaticResource FileInfoLabelStyle}" Text="File Name" VerticalTextAlignment="Center" />
+            <Label Grid.Column="0" Grid.Row="1" Style="{StaticResource FileInfoLabelStyle}" Text="Excel File" VerticalTextAlignment="Center" />
             <Label Grid.Column="0" Grid.Row="2" Style="{StaticResource FileInfoLabelStyle}" Text="Total Branch" />
             <Label Grid.Column="0" Grid.Row="3" Style="{StaticResource FileInfoLabelStyle}" Text="Total Dispute" />
             <Label Grid.Column="0" Grid.Row="4" Style="{StaticResource FileInfoLabelStyle}" Text="Branch Range" />
