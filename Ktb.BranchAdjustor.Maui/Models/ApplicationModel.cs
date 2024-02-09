@@ -12,6 +12,8 @@ namespace Ktb.BranchAdjustor.Models
         private decimal progress;
         private string status;
 
+        private CancellationTokenSource cancellationTokenSource;
+
         public FileInfoModel FileInfo { get; set; }
 
         public bool IsBusy
@@ -57,7 +59,8 @@ namespace Ktb.BranchAdjustor.Models
 
         public ApplicationModel()
         {
-            FileInfo = new(async (fileName) => await LoadFileCommandHandler(fileName));
+            cancellationTokenSource = new();
+            FileInfo = new(async (fileName) => await LoadFileCommandHandler(fileName), CancelLoadFileHandler);
             status = "Ready";
         }
 
@@ -66,13 +69,8 @@ namespace Ktb.BranchAdjustor.Models
         private async Task LoadFileCommandHandler(string fileName)
         {
             IsBusy = true;
-            
-            FileInfo.FileName = string.Empty;
-            FileInfo.BranchRange = string.Empty;
-            FileInfo.TotalBranch = 0;
-            FileInfo.TotalDispute = 0;
-            FileInfo.BranchPerWorker = 0;
-            FileInfo.DisputePerWorker = 0;
+
+            FileInfo.Reset();
 
             BranchDistributedEntities.Clear();
 
@@ -82,6 +80,8 @@ namespace Ktb.BranchAdjustor.Models
                 string branchCodeColumnName = "Branch";
                 string createDateColumnName = "CREATE_DATE";
                 string terminalCodeColumnName = "TERM_ID";
+
+                Status = "Reading Excel File";
 
                 ExcelFileReader reader = new(fileName, sheetName);
                 DataTable disputeDataTable = reader.Read();
@@ -109,12 +109,12 @@ namespace Ktb.BranchAdjustor.Models
                 branchDistributor.ProgressChanged += (progress, message) =>
                 {
                     System.Diagnostics.Debug.WriteLine($"Progress {progress}%");
-                    Status = $"Progress {System.Math.Round(progress * 100,2)}%, {message}";
+                    Status = $"Progress {System.Math.Round(progress * 100, 2)}%, {message}";
 
                     Progress = progress;
                 };
 
-                foreach (BranchDistributedEntity entity in branchDistributor.DistributeByBranch())
+                foreach (BranchDistributedEntity entity in branchDistributor.DistributeByBranch(cancellationTokenSource.Token))
                 {
                     entity.Index = index;
                     entity.BranchAdjust = OnAdjustBranchHandler;
@@ -160,6 +160,21 @@ namespace Ktb.BranchAdjustor.Models
                     prevBranch.BranchEnd--;
                 }
             }
+        }
+
+        private void CancelLoadFileHandler()
+        {
+            cancellationTokenSource.Cancel();
+
+            FileInfo.Reset();
+
+            Progress = 0;
+
+            IsBusy = false;
+
+            BranchDistributedEntities.Clear();
+
+            cancellationTokenSource = new();
         }
     }
 }

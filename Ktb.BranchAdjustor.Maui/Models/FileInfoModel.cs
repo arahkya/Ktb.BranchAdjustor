@@ -80,13 +80,18 @@ namespace Ktb.BranchAdjustor.Models
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalDispute)));
             }
         }
-        
+
         public ICommand SelectFileCommand { get; set; }
 
-        public FileInfoModel(Action<string> loadedFileCallback)
+        public ICommand CancelCommand { get; set; }
+
+        private const string fileNameDefault = "Select File";
+
+        public FileInfoModel(Action<string> loadedFileCallback, Action cancelLoadFile)
         {
             SelectFileCommand = new Command(async () => await SelectFileCommandHandler());
-            FileName = "Select File";
+            CancelCommand = new Command(cancelLoadFile);
+            FileName = fileNameDefault;
 
             WorkerNumber = 7;
             this.loadedFileCallback = loadedFileCallback;
@@ -119,6 +124,16 @@ namespace Ktb.BranchAdjustor.Models
             {
                 System.Diagnostics.Debug.WriteLine(ex.Message);
             }
+        }
+
+        public void Reset()
+        {
+            FileName = fileNameDefault;
+            BranchRange = string.Empty;
+            TotalBranch = 0;
+            TotalDispute = 0;
+            BranchPerWorker = 0;
+            DisputePerWorker = 0;
         }
     }
 }

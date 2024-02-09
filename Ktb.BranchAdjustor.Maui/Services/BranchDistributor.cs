@@ -19,14 +19,16 @@ namespace Ktb.BranchAdjustor.Maui.Services
             this.totalWorker = totalWorker;
         }
 
-        public IEnumerable<BranchDistributedEntity> DistributeByBranch()
+        public IEnumerable<BranchDistributedEntity> DistributeByBranch(CancellationToken cancellationToken)
         {
             BranchDistributedEntity[] branchDistributedEntities = new BranchDistributedEntity[totalWorker];
 
             for (int j = 0; j < totalWorker; j++)
             {
+                if (cancellationToken.IsCancellationRequested) break;
+
                 int branchStart = (j == 0) ? branchRange.Start.Value : branchDistributedEntities[j - 1].BranchEnd + 1;
-                int branchEnd = CalculateBranchEnd(branchStart);
+                int branchEnd = CalculateBranchEnd(branchStart, cancellationToken);
 
                 BranchDistributedEntity branchDistributedEntity = new(disputeEntities, branchStart, branchEnd, branchRange.End.Value);
 
@@ -36,7 +38,7 @@ namespace Ktb.BranchAdjustor.Maui.Services
             }
         }
 
-        private int CalculateBranchEnd(int branchStart)
+        private int CalculateBranchEnd(int branchStart, CancellationToken cancellationToken)
         {
             int adjustBranchStart = branchStart;
             int adjustBranchEnd = adjustBranchStart + 1;
@@ -44,14 +46,14 @@ namespace Ktb.BranchAdjustor.Maui.Services
             int disputeTotal = disputeEntities.Count();
             int avgDisputeForWorker = disputeTotal / totalWorker;
 
-            while (disputeCount < avgDisputeForWorker)
+            while (disputeCount < avgDisputeForWorker && !cancellationToken.IsCancellationRequested)
             {
-                if(adjustBranchEnd == branchRange.End.Value) break;
+                if (adjustBranchEnd == branchRange.End.Value) break;
 
                 disputeCount = disputeEntities.Count(p => p.BranchNumber >= adjustBranchStart && p.BranchNumber <= adjustBranchEnd);
 
                 adjustBranchEnd++;
-                
+
                 string message = $"BranchStart: {adjustBranchStart}, BranchEnd: {adjustBranchEnd}, Dispute: {disputeCount}";
                 ProgressChanged?.Invoke(Convert.ToDecimal(adjustBranchEnd) / Convert.ToDecimal(branchRange.End.Value), message);
 
