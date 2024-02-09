@@ -1,4 +1,4 @@
-using Ktb.BranchAdjustor.Maui.Entities;
+using Ktb.BranchAdjustor.Maui.Models;
 
 namespace Ktb.BranchAdjustor.Maui.Services
 {

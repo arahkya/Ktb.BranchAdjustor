@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Windows.Input;
 using Ktb.BranchAdjustor.Maui.Models;
 
-namespace Ktb.BranchAdjustor.Maui.Entities
+namespace Ktb.BranchAdjustor.Maui.Models
 {
     public class BranchDistributedEntity : INotifyPropertyChanged
     {

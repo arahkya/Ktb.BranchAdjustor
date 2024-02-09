@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
-using Ktb.BranchAdjustor.Maui.Entities;
 using Ktb.BranchAdjustor.Maui.Models;
 using Ktb.BranchAdjustor.Maui.Services;
 

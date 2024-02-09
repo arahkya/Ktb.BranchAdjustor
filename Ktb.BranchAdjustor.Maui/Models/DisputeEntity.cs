@@ -1,4 +1,4 @@
-namespace Ktb.BranchAdjustor.Maui.Entities
+namespace Ktb.BranchAdjustor.Maui.Models
 {
     public class DisputeEntity
     {
