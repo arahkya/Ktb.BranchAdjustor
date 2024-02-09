@@ -10,6 +10,7 @@ namespace Ktb.BranchAdjustor.Models
     {
         private bool isBusy;
         private decimal progress;
+        private string status;
 
         public FileInfoModel FileInfo { get; set; }
 
@@ -41,11 +42,23 @@ namespace Ktb.BranchAdjustor.Models
             }
         }
 
+        public string Status
+        {
+            get => status;
+            set
+            {
+                status = value;
+
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
+            }
+        }
+
         public ObservableCollection<BranchDistributedEntity> BranchDistributedEntities { get; set; } = [];
 
         public ApplicationModel()
         {
             FileInfo = new(async (fileName) => await LoadFileCommandHandler(fileName));
+            status = "Ready";
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -53,6 +66,13 @@ namespace Ktb.BranchAdjustor.Models
         private async Task LoadFileCommandHandler(string fileName)
         {
             IsBusy = true;
+            
+            FileInfo.FileName = string.Empty;
+            FileInfo.BranchRange = string.Empty;
+            FileInfo.TotalBranch = 0;
+            FileInfo.TotalDispute = 0;
+            FileInfo.BranchPerWorker = 0;
+            FileInfo.DisputePerWorker = 0;
 
             BranchDistributedEntities.Clear();
 
@@ -71,7 +91,7 @@ namespace Ktb.BranchAdjustor.Models
 
                 IOrderedEnumerable<IGrouping<int, DisputeEntity>> disputeGroupByBranch = disputes.GroupBy(p => p.BranchNumber).OrderBy(p => p.Key);
 
-                const string branchFormat = "K{0:00000}";
+                const string branchFormat = "{0:00000}";
 
                 int minBranch = 0;
                 int maxBranch = disputeGroupByBranch.Last().Key;
@@ -86,9 +106,10 @@ namespace Ktb.BranchAdjustor.Models
                 BranchDistributor branchDistributor = new(disputes, new Range(minBranch, maxBranch), FileInfo.WorkerNumber);
                 int index = 0;
 
-                branchDistributor.ProgressChanged += (progress) =>
+                branchDistributor.ProgressChanged += (progress, message) =>
                 {
                     System.Diagnostics.Debug.WriteLine($"Progress {progress}%");
+                    Status = $"Progress {System.Math.Round(progress * 100,2)}%, {message}";
 
                     Progress = progress;
                 };
@@ -102,6 +123,8 @@ namespace Ktb.BranchAdjustor.Models
 
                     index++;
                 }
+
+                Status = "Ready";
             });
 
             IsBusy = false;

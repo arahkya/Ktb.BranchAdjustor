@@ -8,7 +8,7 @@ namespace Ktb.BranchAdjustor.Maui.Services
         private readonly Range branchRange;
         private readonly int totalWorker;
 
-        public delegate void OnProgressChanged(decimal progress);
+        public delegate void OnProgressChanged(decimal progress, string message);
 
         public event OnProgressChanged? ProgressChanged;
 
@@ -52,7 +52,8 @@ namespace Ktb.BranchAdjustor.Maui.Services
 
                 adjustBranchEnd++;
                 
-                ProgressChanged?.Invoke(Convert.ToDecimal(adjustBranchEnd) / Convert.ToDecimal(branchRange.End.Value));
+                string message = $"BranchStart: {adjustBranchStart}, BranchEnd: {adjustBranchEnd}, Dispute: {disputeCount}";
+                ProgressChanged?.Invoke(Convert.ToDecimal(adjustBranchEnd) / Convert.ToDecimal(branchRange.End.Value), message);
 
                 System.Diagnostics.Debug.WriteLine($"BranchStart: {adjustBranchStart}, BranchEnd: {adjustBranchEnd}, Dispute: {disputeCount}");
             }
