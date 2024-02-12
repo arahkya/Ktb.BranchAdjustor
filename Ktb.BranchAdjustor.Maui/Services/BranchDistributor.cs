@@ -3,16 +3,9 @@ using Ktb.BranchAdjustor.Maui.Models;
 
 namespace Ktb.BranchAdjustor.Maui.Services
 {
-    public class BranchDistributor : IRecipient<List<DisputeEntity>>, IRecipient<WorkerContextModel>, IRecipient<BranchContextModel>
+    public class BranchDistributor
     {
-        private Range branchRange;
-        private int totalWorker;
-
-        public delegate void OnProgressChanged(decimal progress, string message);
-
-        public event OnProgressChanged? ProgressChanged;
-
-        private int CalculateBranchEnd(int branchStart, List<DisputeEntity> disputes)
+        private int CalculateBranchEnd(int branchStart, IEnumerable<DisputeEntity> disputes, int totalWorker, Range branchRange)
         {
             int adjustBranchStart = branchStart;
             int adjustBranchEnd = adjustBranchStart + 1;
@@ -29,39 +22,47 @@ namespace Ktb.BranchAdjustor.Maui.Services
                 adjustBranchEnd++;
 
                 string message = $"BranchStart: {adjustBranchStart}, BranchEnd: {adjustBranchEnd}, Dispute: {disputeCount}";
-                ProgressChanged?.Invoke(Convert.ToDecimal(adjustBranchEnd) / Convert.ToDecimal(branchRange.End.Value), message);
 
-                System.Diagnostics.Debug.WriteLine($"BranchStart: {adjustBranchStart}, BranchEnd: {adjustBranchEnd}, Dispute: {disputeCount}");
+                WeakReferenceMessenger.Default.Send(new ApplicationStateModel
+                {
+                    Status = message,
+                    Progress = disputeCount / disputes.Count()
+                });
             }
 
             return adjustBranchEnd;
         }
 
-        public void Receive(List<DisputeEntity> disputes)
+        public async Task DistributeAsync(IEnumerable<DisputeEntity> disputes, int totalWorker, Range branchRange)
         {
-            BranchDistributedEntity[] branchDistributedEntities = new BranchDistributedEntity[totalWorker];
-
-            for (int j = 0; j < totalWorker; j++)
+            await Task.Factory.StartNew(() =>
             {
-                int branchStart = (j == 0) ? branchRange.Start.Value : branchDistributedEntities[j - 1].BranchEnd + 1;
-                int branchEnd = CalculateBranchEnd(branchStart, disputes);
+                WeakReferenceMessenger.Default.Send(new ApplicationStateModel
+                {
+                    Status = "Distribut Branch by Dispute",
+                    Progress = 0
+                });
 
-                BranchDistributedEntity branchDistributedEntity = new(disputes, branchStart, branchEnd, branchRange.End.Value);
+                BranchDistributedEntity[] branchDistributedEntities = new BranchDistributedEntity[totalWorker];
 
-                branchDistributedEntities[j] = branchDistributedEntity;
+                for (int j = 0; j < totalWorker; j++)
+                {
+                    int branchStart = (j == 0) ? branchRange.Start.Value : branchDistributedEntities[j - 1].BranchEnd + 1;
+                    int branchEnd = CalculateBranchEnd(branchStart, disputes, totalWorker, branchRange);
 
-                WeakReferenceMessenger.Default.Send(branchDistributedEntity);
-            }
-        }
+                    BranchDistributedEntity branchDistributedEntity = new(disputes, branchStart, branchEnd, branchRange.End.Value);
 
-        public void Receive(WorkerContextModel context)
-        {
-            this.totalWorker = context.TotalWorker;
-        }
+                    branchDistributedEntities[j] = branchDistributedEntity;
 
-        public void Receive(BranchContextModel branchRange)
-        {
-            this.branchRange = branchRange.BranchRange;
+                    WeakReferenceMessenger.Default.Send(branchDistributedEntity);
+                }
+
+                WeakReferenceMessenger.Default.Send(new ApplicationStateModel
+                {
+                    Status = "Done",
+                    Progress = 0
+                });
+            });
         }
     }
 }

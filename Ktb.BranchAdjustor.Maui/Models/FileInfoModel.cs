@@ -1,12 +1,16 @@
 using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Ktb.BranchAdjustor.Maui.Models;
+using Ktb.BranchAdjustor.Maui.Services;
 
 namespace Ktb.BranchAdjustor.Models
 {
     public class FileInfoModel : INotifyPropertyChanged
     {
+        private decimal progress;
         private string fileName = string.Empty;
         private int workerNumber;
         private int totalBranch;
@@ -24,6 +28,16 @@ namespace Ktb.BranchAdjustor.Models
             {
                 fileName = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FileName)));
+            }
+        }
+        public decimal Progress
+        {
+            get => progress;
+            set
+            {
+                progress = value;
+
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Progress)));
             }
         }
         public int WorkerNumber
@@ -81,24 +95,65 @@ namespace Ktb.BranchAdjustor.Models
             }
         }
 
-        public IRelayCommand SelectFileCommand { get; set; }
-
+        public IAsyncRelayCommand SelectFileCommand { get; set; }
 
         private const string fileNameDefault = "Select File";
+        private readonly ExcelFileReader excelFileReader;
+        private readonly DataTableToDisputeEntityConverter dataTableToDisputeEntityConverter;
 
-        public FileInfoModel()
+        public FileInfoModel(ExcelFileReader excelFileReader, DataTableToDisputeEntityConverter dataTableToDisputeEntityConverter)
         {
-            SelectFileCommand = new RelayCommand(async () => await SelectFileCommandHandler());
+            SelectFileCommand = new AsyncRelayCommand(SelectFileCommandHandler);
 
             FileName = fileNameDefault;
 
             WorkerNumber = 7;
+            this.excelFileReader = excelFileReader;
+            this.dataTableToDisputeEntityConverter = dataTableToDisputeEntityConverter;
+
+            WeakReferenceMessenger.Default.Register<ApplicationStateModel>(this, (fileInfoModel, appState) =>
+            {
+                ((FileInfoModel)fileInfoModel).Progress = appState.Progress;
+            });
         }
 
         private async Task SelectFileCommandHandler()
         {
-            System.Diagnostics.Debug.WriteLine("Enter select file function.");
+            if (!string.IsNullOrEmpty(FileName))
+            {
+                WeakReferenceMessenger.Default.Send(new ApplicationStateModel
+                {
+                    Status = "Restart"
+                });
+            }
 
+            string fileName = await PickFileAsync();
+
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return;
+            }
+
+            FileName = fileName;
+
+            DataTable disputeDataTable = await excelFileReader.ReadAsync(fileName);
+            IEnumerable<DisputeEntity> disputes = await dataTableToDisputeEntityConverter.ConvertAsync(disputeDataTable);
+
+            TotalDispute = disputes.Count();
+            TotalBranch = disputes.Max(p => p.BranchNumber);
+            BranchRange = $"00000-{TotalBranch.ToString("00000")}";
+            BranchPerWorker = TotalBranch / WorkerNumber;
+            DisputePerWorker = TotalDispute / WorkerNumber;
+
+            WeakReferenceMessenger.Default.Send(disputes);
+            // WeakReferenceMessenger.Default.Send(new ApplicationStateModel
+            // {
+            //     Status = "Done"
+            // });
+        }
+
+        private async Task<string> PickFileAsync()
+        {
             try
             {
                 FileResult? fileResult = await FilePicker.Default.PickAsync(new PickOptions
@@ -110,19 +165,18 @@ namespace Ktb.BranchAdjustor.Models
                     })
                 });
 
-                if (fileResult == null) return;
+                if (fileResult == null) return string.Empty;
 
-                FileName = fileResult.FullPath;
+                Debug.WriteLine($"Select file: {FileName}");
 
-                WeakReferenceMessenger.Default.Send(new WorkerContextModel { TotalWorker = WorkerNumber });
-                WeakReferenceMessenger.Default.Send(fileResult);
-
-                System.Diagnostics.Debug.WriteLine($"Select file: {FileName}");
+                return fileResult.FullPath;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.Message);
             }
+
+            return string.Empty;
         }
 
         public void Reset()

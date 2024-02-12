@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data;
 using CommunityToolkit.Mvvm.Messaging;
 using Ktb.BranchAdjustor.Maui.Models;
 using Ktb.BranchAdjustor.Maui.Services;
@@ -10,10 +9,10 @@ namespace Ktb.BranchAdjustor.Models
     public class ApplicationModel : INotifyPropertyChanged
     {
         private bool isBusy;
-        private decimal progress;
         private string status;
 
         public FileInfoModel FileInfo { get; set; }
+        public BranchDistributor Distributor { get; }
 
         public bool IsBusy
         {
@@ -31,18 +30,6 @@ namespace Ktb.BranchAdjustor.Models
         {
             get => !isBusy;
         }
-
-        public decimal Progress
-        {
-            get => progress;
-            set
-            {
-                progress = value;
-
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Progress)));
-            }
-        }
-
         public string Status
         {
             get => status;
@@ -58,19 +45,35 @@ namespace Ktb.BranchAdjustor.Models
 
         public ObservableCollection<BranchDistributedEntity> BranchDistributedEntities { get; set; } = [];
 
-        public ApplicationModel(FileInfoModel fileInfo, ExcelFileReader excelFileReader, DataTableToDisputeEntityConverter dataTableToDisputeEntityConverter, BranchDistributor distributor)
+        public ApplicationModel(FileInfoModel fileInfo, BranchDistributor distributor)
         {
             FileInfo = fileInfo;
+            Distributor = distributor;
             status = "Ready";
 
-            WeakReferenceMessenger.Default.Register(excelFileReader);
-            WeakReferenceMessenger.Default.Register(dataTableToDisputeEntityConverter);
-            WeakReferenceMessenger.Default.Register<List<DisputeEntity>>(distributor);
-            WeakReferenceMessenger.Default.Register<WorkerContextModel>(distributor);
-            WeakReferenceMessenger.Default.Register<BranchContextModel>(distributor);
-            WeakReferenceMessenger.Default.Register<BranchDistributedEntity>(this, (appModel, branchDistEntity) =>
+            WeakReferenceMessenger.Default.Register<ApplicationStateModel>(this, (appModel, appState) =>
             {
-                ((ApplicationModel)appModel).BranchDistributedEntities.Add(branchDistEntity);
+                ApplicationModel applicationModel = (ApplicationModel)appModel;
+
+                if (applicationModel.Status == "Restart")
+                {
+                    applicationModel.BranchDistributedEntities.Clear();
+                }
+
+                applicationModel.IsBusy = appState.Status != "Done";
+                applicationModel.Status = appState.Status;
+            });
+
+            WeakReferenceMessenger.Default.Register<IEnumerable<DisputeEntity>>(this, async (appModel, disputes) =>
+            {
+                ApplicationModel applicationModel = (ApplicationModel)appModel;
+
+                await applicationModel.Distributor.DistributeAsync(disputes, applicationModel.FileInfo.WorkerNumber, new Range(0, applicationModel.FileInfo.TotalBranch));
+            });
+
+            WeakReferenceMessenger.Default.Register<BranchDistributedEntity>(this, (appModel, branchDistributed) =>
+            {
+                ((ApplicationModel)appModel).BranchDistributedEntities.Add(branchDistributed);
             });
         }
 
