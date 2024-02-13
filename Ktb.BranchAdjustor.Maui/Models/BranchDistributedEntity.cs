@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.Windows.Input;
-using Ktb.BranchAdjustor.Maui.Models;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Ktb.BranchAdjustor.Maui.Models
 {
@@ -71,10 +71,7 @@ namespace Ktb.BranchAdjustor.Maui.Models
         }
 
         public int TotalBranch { get; set; }
-
-        public delegate void BranchAdjustHandler(ChangeBranchContextModel changeBranchContextModel);
-
-        public BranchAdjustHandler? BranchAdjust;
+        
         private readonly IEnumerable<DisputeEntity> disputes;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -87,13 +84,14 @@ namespace Ktb.BranchAdjustor.Maui.Models
             this.disputes = disputes;
             this.branchStart = branchStart;
             this.branchEnd = branchEnd;
-            this.MaxBranchLimit = maxBranchLimit;
+            MaxBranchLimit = maxBranchLimit;
         }
 
         private void AdjustBranchCommandHandler(object args)
         {
             ChangeBranchContextModel changeContext = (ChangeBranchContextModel)args;
-            BranchAdjust?.Invoke(changeContext);
+
+            WeakReferenceMessenger.Default.Send(changeContext);
         }
 
         private void Recalculate()

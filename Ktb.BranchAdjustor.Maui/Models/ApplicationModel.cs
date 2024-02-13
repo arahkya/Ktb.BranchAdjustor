@@ -73,39 +73,30 @@ namespace Ktb.BranchAdjustor.Models
 
             WeakReferenceMessenger.Default.Register<BranchDistributedEntity>(this, (appModel, branchDistributed) =>
             {
+                branchDistributed.Index = ((ApplicationModel)appModel).BranchDistributedEntities.Count;
                 ((ApplicationModel)appModel).BranchDistributedEntities.Add(branchDistributed);
+            });
+
+            WeakReferenceMessenger.Default.Register<ChangeBranchContextModel>(this, (appModel, changeContext) =>
+            {
+                ((ApplicationModel)appModel).OnAdjustBranchHandler(changeContext);
             });
         }
 
-        private void OnAdjustBranchHandler(ChangeBranchContextModel changeBranchContextModel)
+        public void OnAdjustBranchHandler(ChangeBranchContextModel changeBranchContextModel)
         {
             BranchDistributedEntity currentBranch = BranchDistributedEntities[changeBranchContextModel.Index];
 
-            if (changeBranchContextModel.Position == "End")
-            {
-                BranchDistributedEntity nextBranch = BranchDistributedEntities[changeBranchContextModel.Index + 1];
 
-                if (changeBranchContextModel.Changed == "+")
-                {
-                    nextBranch.BranchStart = currentBranch.BranchEnd + 1;
-                }
-                else if (changeBranchContextModel.Changed == "-")
-                {
-                    nextBranch.BranchStart = currentBranch.BranchEnd + 1;
-                }
+            BranchDistributedEntity nextBranch = BranchDistributedEntities[changeBranchContextModel.Index + 1];
+
+            if (changeBranchContextModel.Changed == "+")
+            {
+                nextBranch.BranchStart = currentBranch.BranchEnd - 1;
             }
-            else if (changeBranchContextModel.Position == "Start")
+            else if (changeBranchContextModel.Changed == "-")
             {
-                BranchDistributedEntity prevBranch = BranchDistributedEntities[changeBranchContextModel.Index - 1];
-
-                if (changeBranchContextModel.Changed == "+")
-                {
-                    prevBranch.BranchEnd++;
-                }
-                else if (changeBranchContextModel.Changed == "-")
-                {
-                    prevBranch.BranchEnd--;
-                }
+                nextBranch.BranchStart = currentBranch.BranchEnd + 1;
             }
         }
     }

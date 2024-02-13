@@ -161,6 +161,7 @@ namespace Ktb.BranchAdjustor.Models
                     PickerTitle = "Select File",
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                     {
+                        { DevicePlatform.WinUI, [ "xlsx" ] },
                         { DevicePlatform.MacCatalyst, [ "xlsx" ] }
                     })
                 });
